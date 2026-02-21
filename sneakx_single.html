@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SneakX — Sneaker Store (Single File Demo)</title>
+  <!--
+    Single-file, front-end-only sneaker store inspired by modern athletic brand sites.
+    ⚠️ Educational demo — not affiliated with Nike. Avoids brand assets & trademarks.
+    Built as a SPA in one HTML file with vanilla JS (hash routing) & CSS.
+  -->
+  <style>
+    :root{
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --fg: #0b1320;
+      --muted: #6b7280;
+      --accent: #111827; /* dark accent similar to brand black */
+      --accent-2: #ff6b00; /* subtle energetic accent */
+      --card: #ffffff;
+      --border: rgba(15,20,25,0.06);
+      --shadow: 0 6px 18px rgba(12,15,20,0.06);
+      --radius:10px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; 
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background:var(--bg);
+      color:var(--fg);
+      line-height:1.45;
+      -webkit-font-smoothing:antialiased;
+    }
+    a{color:inherit; text-decoration:none}
+    img{max-width:100%; display:block}
+    button{cursor:pointer; font-family:inherit}
+
+    /* Header */
+    .header{position:sticky; top:0; z-index:50; background:var(--panel); border-bottom:1px solid var(--border)}
+    .nav{display:flex; align-items:center; justify-content:space-between; padding:14px 20px}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800}
+    .brand-logo{width:28px; height:28px; display:grid; place-items:center; background:transparent; border-radius:6px}
+    .brand span{font-size:1rem}
+    .nav-links{display:flex; gap:18px; align-items:center}
+    .link{color:var(--muted); padding:8px}
+    .link.active, .link:hover{color:var(--fg); opacity:0.95}
+    .search-wrap{position:relative; min-width:160px}
+    .search{background:transparent; color:var(--fg); border:1px solid var(--border); padding:8px 10px 8px 34px; border-radius:999px; outline:none; width:220px}
+    .search-ico{position:absolute; left:10px; top:50%; transform:translateY(-50%); opacity:.6}
+    .icons{display:flex; align-items:center; gap:8px}
+    .icon-btn{background:transparent; border:1px solid var(--border); color:var(--fg); padding:6px 8px; border-radius:8px; display:flex; align-items:center}
+    .cart-badge{background:var(--accent); color:#fff; font-weight:700; font-size:.72rem; padding:3px 8px; border-radius:999px}
+    .menu-btn{display:none}
+
+    /* Layout */
+    .container{max-width:1100px; margin:0 auto; padding:20px}
+
+    /* Hero */
+    .hero{display:grid; grid-template-columns: 1fr .6fr; gap:24px; align-items:center; margin-top:12px}
+    .hero-card{background:transparent; border-radius:var(--radius); padding:20px; position:relative; box-shadow:none; border:1px solid rgba(15,20,25,0.03)}
+    .hero h1{font-size:clamp(1.6rem, 3.8vw, 2.6rem); margin:0 0 6px; letter-spacing:-0.02em}
+    .hero p{color:var(--muted); margin:0 0 14px}
+    .cta{display:flex; gap:12px; align-items:center}
+    .btn{background:transparent; color:var(--fg); border:1px solid transparent; padding:8px 12px; border-radius:8px; font-weight:600}
+    .btn.primary{background:var(--accent); color:#fff; border:none}
+    .btn.alt{background:transparent; border:1px solid var(--border)}
+    .tag{display:inline-flex; gap:8px; align-items:center; color:var(--muted); background:transparent; padding:6px 8px; border-radius:999px; font-weight:700; font-size:.85rem}
+    .hero-art{display:none}
+
+    /* Sections */
+    .section{margin-top:28px}
+    .section h2{font-size:1.05rem; font-weight:800; letter-spacing:0.2px; margin:0 0 8px}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+    .tab{background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 10px; border-radius:999px}
+    .tab.active{color:var(--fg); background:transparent; font-weight:700}
+
+    /* Grid & Card */
+    .grid{display:grid; grid-template-columns: repeat(4, 1fr); gap:16px}
+    @media (max-width: 1020px){ .grid{grid-template-columns: repeat(3,1fr);} }
+    @media (max-width: 760px){ .grid{grid-template-columns: repeat(2,1fr);} }
+    @media (max-width: 520px){ .grid{grid-template-columns: 1fr;} }
+
+    .card{background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden; transition:box-shadow .12s ease; position:relative}
+    .card:hover{transform:none; box-shadow:0 6px 18px rgba(15,20,25,0.04)}
+    .badge{position:absolute; left:12px; top:12px; background:transparent; color:var(--muted); padding:4px 8px; border-radius:999px; font-size:.72rem; font-weight:700; border:1px solid var(--border)}
+    .img-wrap{background:transparent; padding:10px}
+    .card-img{width:100%; aspect-ratio: 4/3; object-fit:contain}
+    .card-body{padding:10px}
+    .name{font-weight:700; margin:0 0 6px; font-size:1rem}
+    .muted{color:var(--muted); font-size:.9rem}
+    .price{margin-top:6px; font-weight:700}
+    .actions{display:flex; align-items:center; justify-content: space-between; gap:8px; margin-top:8px}
+    .chip{background:rgba(20, 20, 20, 0.8); border-radius:2px; border:1px solid var(--border); color:white; padding:4px 16px; font-weight:400}
+    .buy{background:var(--accent); color:#fff; font-weight:700; border:none; padding:8px 10px; border-radius:8px}
+
+    /* Product detail */
+    .pd{display:grid; grid-template-columns: 1fr .9fr; gap:20px}
+    @media (max-width: 900px){ .pd{grid-template-columns:1fr;}}
+    .pd-gallery{background:transparent; border-radius:10px; padding:12px}
+    .pd-thumb-row{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap}
+    .pd-thumb{width:68px; height:68px; border:1px solid var(--border); border-radius:8px; background:transparent; display:grid; place-items:center}
+    .pd-main{width:100%; aspect-ratio: 4/3; object-fit:contain; background:transparent; border-radius:8px}
+    .pd-title{margin:8px 0 6px; font-size:1.4rem}
+    .pd-price{font-weight:900; font-size:1.15rem}
+    .sizes{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0}
+    .size{min-width:44px; text-align:center; padding:8px 10px; border-radius:8px; background:transparent; border:1px solid var(--border)}
+    .size.active{border-color:var(--accent); box-shadow:none}
+
+    /* Cart */
+    .cart{display:grid; grid-template-columns: 1.2fr .8fr; gap:20px}
+    @media (max-width: 900px){ .cart{grid-template-columns:1fr;}}
+    .cart-list, .summary{background:transparent; border:1px solid var(--border); border-radius:12px; padding:14px}
+    .cart-item{display:grid; grid-template-columns: 100px 1fr auto; gap:14px; padding:12px 0; border-bottom:1px dashed rgba(15,20,25,0.04)}
+    .cart-item:last-child{border-bottom:0}
+    .qty{display:flex; gap:6px; align-items:center}
+    .qty button{width:28px; height:28px; background:transparent; border:1px solid var(--border); color:var(--fg); border-radius:6px}
+    .summary-row{display:flex; align-items:center; justify-content:space-between; margin:8px 0}
+    .checkout{width:100%; margin-top:12px; padding:12px 14px; border-radius:10px; border:none; background:var(--accent); color:#fff; font-weight:800}
+
+    /* Footer */
+    footer{margin-top:40px; padding:24px 20px; color:var(--muted); border-top:1px solid var(--border); background:transparent}
+
+    /* Mobile */
+    @media (max-width: 860px){
+      .search-wrap{display:none}
+      .nav-links{display:none}
+      .menu-btn{display:flex}
+      .hero{grid-template-columns:1fr}
+    }
+    .drawer{position:fixed; inset:0 40% 0 0; background:#fff; border-right:1px solid var(--border); z-index:60; transform:translateX(-100%); transition:transform .25s ease}
+    .drawer.open{transform:none}
+    .drawer a{display:block; padding:14px 16px; border-bottom:1px solid var(--border); color:var(--fg)}
+
+    /* Util */
+    .sr{position:absolute; left:-9999px}
+    .pill{display:inline-flex; gap:8px; align-items:center; padding:2px 12px; border-radius:20px; background:transparent; border:1px solid var(--border); color:var(--muted)}
+    .rating{display:inline-flex; align-items:center; gap:6px; color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="nav container">
+      <!-- simplified: removed menu button -->
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <!-- simple swoosh-y abstract icon (not Nike) -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 4c-3 5-9.5 7-14 8 3 1 7 .5 10-1.5S20 6 20 4Z" fill="#0c1512"/>
+          </svg>
+        </div>
+        <span>SneakX</span>
+      </div>
+      <nav class="nav-links">
+        <a class="link" href="#/">Home</a>
+        <a class="link" href="#/men">Men</a>
+        <a class="link" href="#/women">Women</a>
+        <a class="link" href="#/sale">Sale</a>
+      </nav>
+      <!-- search removed for a minimal header -->
+      <div class="icons" style="gap:6px">
+        <a class="icon-btn" href="#/cart" aria-label="Cart">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4h-2l-1 2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 19h9v-2h-9l1.1-2h6.45a2 2 0 0 0 1.79-1.11L22 8H7.42l-.7-1.4L6.16 6H4"/></svg>
+          <span id="cartCount" class="cart-badge">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <a href="#/">Home</a>
+    <a href="#/men">Men</a>
+    <a href="#/women">Women</a>
+    <a href="#/sale">Sale</a>
+    <a href="#/cart">Cart</a>
+  </aside>
+
+  <main id="app" class="container" tabindex="-1"></main>
+
+  <footer>
+    <div class="container" style="display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap">
+      <div>
+        <strong style="display:flex; align-items:center; gap:10px"><span class="brand-logo" aria-hidden="true"></span> SneakX</strong>
+        <div style="margin-top:8px">Modern sneakers for every run. This is an educational demo.</div>
+      </div>
+      <div style="display:flex; gap:18px; flex-wrap:wrap">
+        <a class="pill" href="#/">Home</a>
+        <a class="pill" href="#/men">Men</a>
+        <a class="pill" href="#/women">Women</a>
+        <a class="pill" href="#/sale">Sale</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ------- Mini Data Layer -------
+    const money = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
+    const encodeSVG = (svg) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+
+    const shoeSVG = (primary = '#7cf3d8', accent = '#79a7ff') => {
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'>
+        <defs>
+          <linearGradient id='g1' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0' stop-color='${primary}' stop-opacity='.22'/>
+            <stop offset='1' stop-color='${accent}' stop-opacity='.12'/>
+          </linearGradient>
+        </defs>
+        <rect width='100%' height='100%' fill='#0f1014'/>
+        <circle cx='620' cy='-60' r='260' fill='url(#g1)'/>
+        <g transform='translate(60,160)'>
+          <path d='M40 220c120 40 180-30 260-60 40-16 120-8 180 10 50 16 90 20 140 10 40-8 60 44 16 62-80 34-196 50-294 62-94 12-190 10-302-26-40-14-40-56 0-58Z' fill='${primary}' opacity='.18'/>
+          <path d='M90 190c90 20 170-40 240-70 20-8 110-14 170 4 44 13 92 18 146 8 20-4 36 8 24 34-28 52-178 72-270 82-112 12-240-2-332-42-20-9-22-38 22-44Z' fill='${accent}' opacity='.22'/>
+          <g>
+            <path d='M120 170c40 18 110-24 160-56 44-28 78-38 112-30 18 4 52 16 92 14 14 0 24 20 10 30-44 32-128 62-212 78-60 12-112 6-162-16-14-6-12-26 0-20Z' fill='${primary}'/>
+            <path d='M132 196c2-10 18-10 26-8 24 6 54 10 98-2 52-16 94-34 136-66 8-6 28-2 18 12-32 48-172 106-206 108-38 4-76-14-72-44Z' fill='${accent}'/>
+          </g>
+        </g>
+      </svg>`;
+      return encodeSVG(svg);
+    };
+
+    const products = [
+      {
+        id: 'runpro-5',
+        name: 'RunPro 5',
+        gender: ['men','women'],
+        price: 129.99,
+        rating: 4.6, reviews: 128,
+        badges: ['New'],
+        colors: [
+          { name: 'Charcoal / Mint', hex: '#2c2f36', img: shoeSVG('#7cf3d8', '#79a7ff') },
+          { name: 'Sunrise', hex: '#ffb86c', img: shoeSVG('#ffb86c', '#ffd479') },
+        ],
+        description: 'Lightweight daily trainer with springy foam and an efficient rocker geometry for smooth transitions.'
+      },
+      {
+        id: 'edge-zoom-x',
+        name: 'Edge Zoom X',
+        gender: ['men'],
+        price: 159.00,
+        rating: 4.8, reviews: 204,
+        badges: ['Best Seller'],
+        colors: [
+          { name: 'Black Ice', hex: '#111418', img: shoeSVG('#9ad0ff', '#7cf3d8') },
+          { name: 'Firestorm', hex: '#ff6b6b', img: shoeSVG('#ff6b6b', '#ffd479') },
+        ],
+        description: 'Responsive midsole with carbon-infused plate tuned for long-distance tempo efforts.'
+      },
+      {
+        id: 'cloud-racer',
+        name: 'Cloud Racer',
+        gender: ['women'],
+        price: 139.50,
+        rating: 4.5, reviews: 88,
+        badges: ['Limited'],
+        colors: [
+          { name: 'Polar', hex: '#dfe7ff', img: shoeSVG('#b6ffea', '#9ad0ff') },
+          { name: 'Rose Mist', hex: '#ffbcd1', img: shoeSVG('#ffbcd1', '#ffd6a5') },
+        ],
+        description: 'Featherlight construction and breathable mesh upper with plush landing zones.'
+      },
+      {
+        id: 'stride-plus',
+        name: 'Stride+ Trail',
+        gender: ['men','women'],
+        price: 149.00,
+        rating: 4.4, reviews: 61,
+        badges: ['Trail'],
+        colors: [
+          { name: 'Forest', hex: '#2e3b2e', img: shoeSVG('#a1ffce', '#faffd1') },
+          { name: 'Lava', hex: '#f45b69', img: shoeSVG('#f45b69', '#ffb86c') },
+        ],
+        description: 'Grippy outsole and rock plate protection for technical terrain, rain or shine.'
+      },
+    ];
+
+    // ------- State -------
+    const state = {
+      query: '',
+      cart: JSON.parse(localStorage.getItem('sneakx_cart')||'[]'),
+      selectedSize: {}, // productId -> size
+    };
+    const saveCart = () => localStorage.setItem('sneakx_cart', JSON.stringify(state.cart));
+
+    // ------- Utilities -------
+    const el = (sel) => document.querySelector(sel);
+    const byId = (id) => products.find(p => p.id === id);
+    const scrollTop = () => { try { document.getElementById('app').focus(); window.scrollTo({top:0, behavior:'smooth'});} catch(e){} };
+
+    const stars = (n=0) => {
+      const full = Math.floor(n);
+      const half = n - full >= .5;
+      let out = '';
+      for(let i=0;i<full;i++) out += '★';
+      if(half) out += '☆';
+      while(out.length < 5) out += '✩';
+      return out;
+    };
+
+    // ------- Views -------
+    const HomeView = () => {
+      const featured = products.filter(p => !state.query || p.name.toLowerCase().includes(state.query));
+      return `
+        <section class="hero">
+          <article class="hero-card">
+            <h1>RunPro 5 — light, fast & cushioned.</h1>
+            <p>Move effortlessly with plush rebound and a smooth rocker. Built for daily miles and weekend races.</p>
+            <div class="cta">
+              <a class="btn primary" href="#/men">Shop Men</a>
+              <a class="btn" href="#/women">Shop Women</a>
+              <span class="rating" title="Average rating">
+                <span aria-hidden="true">${stars(4.6)}</span>
+                <span>4.6 (1k+)</span>
+              </span>
+            </div>
+          </article>
+          <article class="hero-card" aria-label="Perks">
+            <h2 style="margin-top:0">Member Perks</h2>
+            <ul style="margin:0; padding-left:18px; color:var(--muted)">
+              <li>Free shipping & 30-day trial runs</li>
+              <li>Early access to limited colorways</li>
+              <li>Points on every purchase</li>
+            </ul>
+            <div style="margin-top:14px" class="cta">
+              <a class="btn" href="#/sale">Browse Deals</a>
+              <button class="btn alt" onclick="alert('This is a demo!')">Join Free</button>
+            </div>
+          </article>
+        </section>
+
+        <section class="section">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
+            <h2>Featured</h2>
+            <div class="tabs" role="tablist">
+              <a class="tab active" href="#/">All</a>
+              <a class="tab" href="#/men">Men</a>
+              <a class="tab" href="#/women">Women</a>
+            </div>
+          </div>
+          <div class="grid">
+            ${featured.map(Card).join('')}
+          </div>
+        </section>
+      `;
+    };
+
+    const ListView = (gender) => {
+      const list = products.filter(p => p.gender.includes(gender)).filter(p => !state.query || p.name.toLowerCase().includes(state.query));
+      return `
+        <section class="section">
+          <h2 style="display:flex; align-items:center; gap:10px">${gender === 'men' ? 'Men' : 'Women'} <span class="pill">${list.length} products</span></h2>
+          <div class="grid">${list.map(Card).join('')}</div>
+        </section>
+      `;
+    };
+
+    const SaleView = () => {
+      const list = products.filter((_,i)=> i % 2 === 0);
+      return `
+        <section class="section">
+          <h2>Sale <span class="pill">Up to 40% off</span></h2>
+          <div class="grid">${list.map(p => Card({...p, price: (p.price*0.8).toFixed(2)})).join('')}</div>
+        </section>
+      `;
+    };
+
+    const ProductView = (id) => {
+      const p = byId(id);
+      if(!p) return NotFound();
+      const color = p.colors[0];
+      const selectedSize = state.selectedSize[p.id] || null;
+      const sizes = [6,7,8,9,10,11,12];
+      return `
+        <nav style="margin:6px 0 10px"><a class="link" href="#/">Home</a> / <a class="link" href="#/${p.gender[0]}">${p.gender[0][0].toUpperCase()+p.gender[0].slice(1)}</a> / <span>${p.name}</span></nav>
+        <section class="pd">
+          <div class="pd-gallery">
+            <img class="pd-main" alt="${p.name} main image" src="${color.img}" />
+            <div class="pd-thumb-row">
+              ${p.colors.map(c => `<img class="pd-thumb" src="${c.img}" alt="${p.name} color ${c.name}"/>`).join('')}
+            </div>
+          </div>
+          <div>
+            <h1 class="pd-title">${p.name}</h1>
+            <div class="rating"><span aria-hidden="true">${stars(p.rating)}</span> <span>${p.rating} • ${p.reviews} reviews</span></div>
+            <div class="pd-price" style="margin:8px 0">${money(p.price)}</div>
+            <p style="color:var(--muted)">${p.description}</p>
+            <div style="margin-top:12px">
+              <div class="muted" style="margin-bottom:6px">Select size</div>
+              <div class="sizes" role="listbox" aria-label="Choose size">
+                ${sizes.map(s => `<button class="size ${selectedSize===s?'active':''}" data-act="choose-size" data-id="${p.id}" data-size="${s}">${s}</button>`).join('')}
+              </div>
+              <div class="actions">
+                <button class="buy" data-act="add" data-id="${p.id}">Add to Cart</button>
+                <button class="chip" onclick="history.back()">Back</button>
+              </div>
+              <div class="muted" style="margin-top:8px">Free shipping & 30-day trial runs.</div>
+            </div>
+          </div>
+        </section>
+      `;
+    };
+
+    const CartView = () => {
+      const items = state.cart.map(ci => ({...ci, product: byId(ci.id)}));
+      const subtotal = items.reduce((a,b) => a + b.product.price * b.qty, 0);
+      const shipping = items.length ? 0 : 0;
+      const total = subtotal + shipping;
+      if(!items.length) return `
+        <section class="section">
+          <h2>Your cart is empty</h2>
+          <p class="muted">Browse products and add to cart.</p>
+          <div class="actions">
+            <a class="btn" href="#/men">Shop Men</a>
+            <a class="btn alt" href="#/women">Shop Women</a>
+          </div>
+        </section>`;
+
+      return `
+        <section class="section cart">
+          <div class="cart-list">
+            <h2 style="margin-top:0">Your Cart</h2>
+            ${items.map(it => `
+              <div class="cart-item">
+                <img alt="${it.product.name}" src="${it.product.colors[0].img}" style="width:100px; height:100px; object-fit:contain; background:#0f1014; border-radius:10px"/>
+                <div>
+                  <div style="display:flex; justify-content:space-between; gap:8px">
+                    <strong>${it.product.name}</strong>
+                    <div class="price">${money(it.product.price)}</div>
+                  </div>
+                  <div class="muted">Size ${it.size || '-'} • ${it.product.colors[0].name}</div>
+                  <div class="qty" style="margin-top:6px">
+                    <button data-act="dec" data-id="${it.id}" aria-label="Decrease quantity">-</button>
+                    <span>${it.qty}</span>
+                    <button data-act="inc" data-id="${it.id}" aria-label="Increase quantity">+</button>
+                    <button class="chip" data-act="remove" data-id="${it.id}" style="margin-left:8px">Remove</button>
+                  </div>
+                </div>
+                <div style="text-align:right; font-weight:800">${money(it.product.price*it.qty)}</div>
+              </div>
+            `).join('')}
+          </div>
+          <aside class="summary">
+            <h2 style="margin-top:0">Summary</h2>
+            <div class="summary-row"><span>Subtotal</span><strong>${money(subtotal)}</strong></div>
+            <div class="summary-row"><span>Shipping</span><strong>${shipping ? money(shipping) : 'Free'}</strong></div>
+            <div class="summary-row" style="border-top:1px dashed #2b2c33; padding-top:10px"><span>Total</span><strong>${money(total)}</strong></div>
+            <button class="checkout" onclick="alert('Demo checkout — no payment processed.')">Checkout</button>
+          </aside>
+        </section>
+      `;
+    };
+
+    const NotFound = () => `<section class="section"><h2>Not found</h2><p class="muted">The page you are looking for does not exist.</p></section>`;
+
+    const Card = (p) => `
+      <article class="card">
+        ${p.badges?.[0] ? `<span class="badge">${p.badges[0]}</span>` : ''}
+        <a href="#/product/${p.id}">
+          <div class="img-wrap"><img class="card-img" alt="${p.name}" src="${p.colors[0].img}" /></div>
+        </a>
+        <div class="card-body">
+          <a href="#/product/${p.id}" class="name">${p.name}</a>
+          <div class="muted">${p.gender.join(' / ')}</div>
+          <div class="actions">
+            <span class="price">${money(p.price)}</span>
+            <button class="chip" data-act="add" data-id="${p.id}">Add</button>
+          </div>
+        </div>
+      </article>`;
+
+    // ------- Router -------
+    const routes = [
+      { path: /^#\/$|^$/, view: () => HomeView() },
+      { path: /^#\/men$/, view: () => ListView('men') },
+      { path: /^#\/women$/, view: () => ListView('women') },
+      { path: /^#\/sale$/, view: () => SaleView() },
+      { path: /^#\/product\/([\w-]+)$/, view: (id) => ProductView(id) },
+      { path: /^#\/cart$/, view: () => CartView() },
+    ];
+
+    function render(){
+      const hash = window.location.hash || '#/';
+      for(const r of routes){
+        const m = hash.match(r.path);
+        if(m){
+          el('#app').innerHTML = r.view(m[1]);
+          updateCartCount();
+          scrollTop();
+          return;
+        }
+      }
+      el('#app').innerHTML = NotFound();
+    }
+
+    // ------- Events -------
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-act]');
+      if(!t) return;
+      const act = t.getAttribute('data-act');
+      const id = t.getAttribute('data-id');
+      if(act === 'add'){
+        const p = byId(id);
+        if(!p) return;
+        const size = state.selectedSize[id] || 9; // default size if not chosen
+        const existing = state.cart.find(ci => ci.id === id && ci.size === size);
+        if(existing) existing.qty += 1; else state.cart.push({id, qty:1, size});
+        saveCart(); updateCartCount();
+        // small feedback
+        t.textContent = 'Added'; setTimeout(()=>{ t.textContent = t.tagName==='BUTTON'?'Add':'Add'; }, 1000);
+      }
+      if(act === 'choose-size'){
+        const size = Number(t.getAttribute('data-size'));
+        const pid = t.getAttribute('data-id');
+        state.selectedSize[pid] = size;
+        render();
+      }
+      if(act === 'inc'){
+        const it = state.cart.find(ci => ci.id === id);
+        if(it){ it.qty++; saveCart(); render(); }
+      }
+      if(act === 'dec'){
+        const it = state.cart.find(ci => ci.id === id);
+        if(it){ it.qty = Math.max(1, it.qty-1); saveCart(); render(); }
+      }
+      if(act === 'remove'){
+        state.cart = state.cart.filter(ci => ci.id !== id);
+        saveCart(); render();
+      }
+    });
+
+    // Search
+    el('#search')?.addEventListener('input', (e)=>{
+      state.query = e.target.value.trim().toLowerCase();
+      render();
+    });
+
+    // Menu
+    const drawer = el('#drawer');
+    const openMenuBtn = el('#openMenu');
+    if(openMenuBtn){
+      openMenuBtn.addEventListener('click', () => {
+        const open = drawer.classList.toggle('open');
+        drawer.setAttribute('aria-hidden', String(!open));
+      });
+    }
+    drawer.addEventListener('click', () => {
+      drawer.classList.remove('open');
+      drawer.setAttribute('aria-hidden', 'true');
+    });
+
+    function updateCartCount(){
+      const count = state.cart.reduce((a,b)=>a+b.qty,0);
+      el('#cartCount').textContent = count;
+    }
+
+    window.addEventListener('hashchange', render);
+    render();
+  </script>
+</body>
+</html>
